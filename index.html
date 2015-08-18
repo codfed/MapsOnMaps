@@ -23,7 +23,9 @@
   <body>
     <div id="wrap">
         <div id="input" class="categoryList">
-          <label for="titleTextInput">   Title:</label>  <input type="text" size="28" id="titleTextInput" onkeyup=titleChange() placeholder="Type Title Here" type="text" />
+          <div id="titleInput">
+            <label for="titleTextInput">Title:</label>  <input type="text" size="28" id="titleTextInput" onkeyup=titleChange() placeholder="Type Title Here" typeof="text" />
+          </div>
           <div id="categories" ></div>
           <button type="add" id = "addCategoryButton" onclick="addCategory()">Add Category</button>
         </div>
@@ -45,8 +47,8 @@
       });
 
       window.onload = function() {
-        $("#legend").css('left', 675);
-        $("#legend").css('top', -200);
+        $("#legend").css('left', 758);
+        $("#legend").css('top', -222);
         //addCategory();
 
       };
@@ -289,7 +291,7 @@
         var newCategoryLabelId = 'category'+ CategoryCount + 'Label';
         var newCategoryClass = 'category' + CategoryCount + "Class";
         var newCategoryClassSelector = '.category' + CategoryCount + "Class";
-        $('#categories').append('<div id="' + newCategoryId +'"></div>');
+        $('#categories').append('<div id="' + newCategoryId +'" class="alternative_cls"></div>');
         $('#' + newCategoryId).append('<button type="select" id = "categoryButton' + CategoryCount +'"onclick="changeCategory(' + CategoryCount + ')"><span class="buttontext">→</span></button><input id="category' + CategoryCount + 'Color" /><input class="categoryText" type="text" onkeyup="updateD3Legend()" id="'+ newCategoryLabelId + '" value = "'+ newCategoryText +'">');
         if(CategoryCount > 0)
         {
