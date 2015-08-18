@@ -4,8 +4,8 @@ body{
    font-family: Arial, 'Veranda', Veranda, sans-serif;
 }
 #wrap {
-   width:1200px;
-   margin:0 auto;
+   width:1300px;
+   margin:0 ;
 }
 #input {
    float:left;
@@ -13,17 +13,9 @@ body{
 }
 
 #display{
-  float:right;
-  width: 900px;
+  float:left;
+  width: 1000px;
 }
-
-/*nav bar*/
-/*
-ul{
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}*/
 
 .mapTitle{
   text-align: center;
@@ -33,6 +25,25 @@ ul{
 
 .categoryInput{
   width: 180px;
+}
+.alternative_cls{
+  margin-bottom: 1px;  
+  border-radius: 4px;
+}
+
+.alternative_cls:nth-child(odd){
+    background:#999999;
+}
+
+.alternative_cls:nth-child(even){
+    background:#636363;
+}
+
+#titleInput{
+  color: #fff;
+  background:#636363;   
+  border-radius: 4px;
+  margin-bottom: 1px;
 }
 
 .legend{
@@ -83,44 +94,6 @@ ul{
   transition: all 0.3s;
 }
 
-/*.btn:after {
-  content: '';
-  position: absolute;
-  z-index: -1;
-  -webkit-transition: all 0.3s;
-  -moz-transition: all 0.3s;
-  transition: all 0.3s;
-}*/
-
-.btn-AddCat {
-    background: #cb4e4e;
-    color: #fff;
-    box-shadow: 0 6px #ab3c3c;
-    border-radius: 7px;
-}
-
-/*.categoryList {
-  white-space: nowrap;
-}*/
-
-/*.btn-categorySelect {
-  background: #cb4e4e;
-  color: #fff;
-  box-shadow: 0 6px #ab3c3c;
-  -webkit-transition: none;
-  -moz-transition: none;
-  transition: none;
-}*/
-
-/*.btn-categorySelect {
-  background: #cb4e4e;
-  color: #fff;
-  box-shadow: 0 6px #ab3c3c;
-  border-radius: 40px;
-  -webkit-transition: none;
-  -moz-transition: none;
-  transition: none;
-}*/
 .buttontext {
   position: relative;
   font-size: 12pt; 
@@ -128,22 +101,21 @@ ul{
   left: -3px;
 }
 .categoryList button{
-  border: 1px solid #b2b2b2;
+  border: 1px solid #000;
   background: #E0E0E0;
   position: relative;
-  font-weight: 700;  
   cursor: pointer;  
-  font-family: Sans-serif;
   -webkit-text-stroke-width: 1px;
-   -webkit-text-stroke-color: #b2b2b2;
+   -webkit-text-stroke-color: #000;
   
 }
 
 .categoryList button[type="delete"] {
-    color: #b2b2b2;
+  border: 2px
+    color: #000;
     border-radius: 50%;
-    width: 15px;
-    height: 15px;
+    width: 18px;
+    height: 18px;
     padding: 0;
     font-size: 9pt; 
     display: inline-block;
@@ -152,22 +124,27 @@ ul{
 }
 
 .categoryList button[type="add"] {
-    color: #b2b2b2;
+    color: #000;
     border-radius: 4px;
     width: 100%;
     height: 25px;
     padding: 0;
-    font-size: 9pt; 
+    font-size: 12pt;
+    font-weight: bold; 
     display: inline-block;
     outline: none;
+    -webkit-text-stroke-width: 0px;
     /*transition: all 0.3s ease 0s;*/
 }
 
 .categoryList button[type="select"] {
+  font-weight: 700; 
   border-radius: 4px;
   width: 24px;
   height: 24px;
   top: 1px;
+  margin-left: 4px;
+  
   margin-right: 4px;
     /*transition: all 0.3s ease 0s;*/
 }
@@ -182,11 +159,13 @@ ul{
 .categoryList button:active {
   border:1px solid #000;
   color: #000;
+  box-shadow: 0 0 5px 1px #fff;
   -webkit-text-stroke-color: #000;
 }
 
 .categoryList button.selected {
   border:1px solid #000;
+  box-shadow: 0 0 5px 2px #fff;
   -webkit-text-stroke-color: #000;
   /*top: 4px;*/
 }
@@ -206,5 +185,15 @@ ul{
 }
 
 .categoryList #titleTextInput{
-  width:240px;
+  width:220px;
+  height:auto;
+}
+
+.categoryList label{
+  display:inline-block; 
+  vertical-align:middle;
+  padding-left: 3px;  
+  font-size: 20px;
+  font-weight: bold;
+  letter-spacing: .5px;
 }
