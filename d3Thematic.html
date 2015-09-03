@@ -1,0 +1,353 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Maps On Maps</title>
+    
+
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css" rel="stylesheet" integrity="sha256-MfvZlkHCEqatNoGiOXveE8FIwMzZg4W85qfrfIFBfYc= sha512-dTfge/zgoMYpP7QbHy4gWMEGsbsdZeCXz7irItjcC3sPUFtf0kuFbDz/ixG7ArTxmDjLXDmezHubeNikyKGVyQ==" crossorigin="anonymous">
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+        <script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js" integrity="sha256-Sk3nkD6mLTMOF0EOpNtsIry+s1CsaqQC1rVLTAy+0yc= sha512-K1qjQ+NcF2TYO/eI3M6v8EiNYZfA95pQumfvcVrTHtwQVDG+aHRqLi/ETn2uB+1JqwYqVG3LIvdm9lj6imS/pQ==" crossorigin="anonymous"></script>
+
+    <!-- loading cutomised d3 library including the special USA projection -->
+    <script type="text/javascript" src="js/d3.js"></script>
+    <script type="text/javascript" src="js/spectrum.js"></script>
+    <link rel="stylesheet" href="css/d3Thematic.css">
+    <link rel='stylesheet' href='css/spectrum.css' />    
+    <link rel='stylesheet' href='css/master.css' />  
+    <link href='http://fonts.googleapis.com/css?family=Lato:400,700' rel='stylesheet' type='text/css'> 
+   
+  </head>
+  <body>
+    <div id="navbar"></div>
+    <div id="wrap">
+        <div id="input" class="categoryList">
+          <div id="titleInput">
+            <label for="titleTextInput">Title:</label>  <input type="text" size="28" id="titleTextInput" onkeyup=titleChange() placeholder="Enter Map Title" typeof="text" />
+          </div>
+          <div id="categories" ></div>
+          <button type="add" id = "addCategoryButton" onclick="addCategory()">Add Category</button>
+          
+        </div>
+        <div id="display">
+          <div id="map">
+            <div class="mapTitle">
+              <div class="mapTitleCenter"><H1 id="title"></H1>
+              </div>
+            </div>
+          </div>
+          <div id="legend" class="legend" data-toggle="tooltip" title="Click+drag for better map balance!"></div>
+        </div>
+    </div>
+
+
+    <script>
+      window.onload = function() {
+        //initial legend position
+        $("#legend").css('left', 758);
+        $("#legend").css('top', -222);
+
+        $("#legend").click(function(){
+          $("#legend").tooltip('destroy');
+        });
+        $("#navbar").load("navbar.html"); 
+        $( "#legend" ).draggable({
+            containment: [320, 72, 1900, 1000]
+          });
+      };
+
+      var CategoryCount = 0;
+      var SelectedClass;
+      
+      var Palette =  [
+        ["#1B9E77", "#D95F02", "#7570B3", "#E7298A", "#66A61E", "#E6AB02", "#A6761D", "#666666" ],
+        ["#000","#444","#666","#999","#ccc","#eee","#f3f3f3","#fff"],
+        ["#f00","#f90","#ff0","#0f0","#0ff","#00f","#90f","#f0f"],
+        ["#f4cccc","#fce5cd","#fff2cc","#d9ead3","#d0e0e3","#cfe2f3","#d9d2e9","#ead1dc"],
+        ["#ea9999","#f9cb9c","#ffe599","#b6d7a8","#a2c4c9","#9fc5e8","#b4a7d6","#d5a6bd"],
+        ["#e06666","#f6b26b","#ffd966","#93c47d","#76a5af","#6fa8dc","#8e7cc3","#c27ba0"],
+        ["#c00","#e69138","#f1c232","#6aa84f","#45818e","#3d85c6","#674ea7","#a64d79"],
+        ["#900","#b45f06","#bf9000","#38761d","#134f5c","#0b5394","#351c75","#741b47"],
+        ["#600","#783f04","#7f6000","#274e13","#0c343d","#073763","#20124d","#4c1130"]
+      ];
+      
+      var now = d3.time.hour.utc(new Date);
+      var dataset = []; 
+
+      var w = 700;      
+
+      var margin = {top: 10, right: 10, bottom: 10, left: 10}
+        , w = parseInt(d3.select('#map').style('width'), 10)
+        , w = w - margin.left - margin.right
+        , percent = d3.format('%');
+
+      var h = w * 0.58; //aspect ratio
+      //Define map projection to account for 2D
+      var projection = d3.geo.albersUsa()
+            .translate([w/2, h/2])
+            .scale([w]);
+
+      //Define path generator
+      var path = d3.geo.path()
+            .projection(projection);
+                
+      //Create SVG element
+      var svg = d3.select("#map")
+            .append("svg")
+            .attr("width", w)
+            .attr("height", h);
+      var borderWidth = 1;
+      var legendSvg = d3.select("#legend")
+            .append("svg");
+
+      var g = svg.append("g");
+
+      //Load in GeoJSON data
+      d3.json("data/us-states.json", function(json) {
+
+        g.append('g')
+            .attr("id", "states")
+            .selectAll("path")
+            .data(json.features)
+            .enter()
+            .append('g')
+            .attr("class","state-path")
+            .attr("state", function(d) {
+                return d.state;
+            });
+            
+        svg.selectAll(".state-path")
+            .append("path")
+            .attr("d", path)
+            .attr("class", "category0Class")
+            .style("stroke-width", "1")
+            .style("stroke", "white")
+            .on('click', clicked);
+
+        // add legend   
+        var legend = legendSvg.append("g")
+          .attr("class", "d3Legend")
+          .attr("id", "d3Legend")
+          .attr("height", 100)
+          .attr("width", 90)
+          .attr('transform', 'translate(0,0)') ;
+
+          //updateD3Legend();
+        addCategory();
+      });
+
+      function updateD3Legend(){
+         updateDataset();
+         var legend = d3.select("#d3Legend");
+
+         legend.selectAll('rect').remove();
+          var rect = legend.selectAll('rect');
+            rect.data(dataset)
+            .enter()
+            .append("rect")
+            .attr("x", 5)
+            .attr("y", function(d, i){ return i *  20 + 5;})
+            .attr("width", 10)
+            .attr("height", 10)
+            .style("fill", function(d) { 
+              var color = d.categoryColor;
+              return color;
+            });
+
+          legend.selectAll('text').remove();
+          var text = legend.selectAll('text')
+          text
+            .data(dataset)
+            .enter()
+            .append("text")
+            .attr("x", 20)
+            .attr("y", function(d, i){ return i *  20 + 14;})
+          .text(function(d) {
+              var text = d.legendText;
+              return text;
+          });
+
+          var updatedText = legend.selectAll('text');
+          var widestLabel = Math.round(getWidestLabel(updatedText[0]));
+          var legendWidth =  29 + widestLabel;
+
+          var legendHeight = dataset.length * 20 + 4;
+
+          $("#legend").css('width', legendWidth);
+          $("#legend").css('height', legendHeight);
+
+          legendSvg
+            .attr("width", legendWidth)
+            .attr("height", legendHeight);
+          
+      }
+
+      function updateDataset(){
+        dataset.forEach(function(a){
+          a.legendText = document.getElementById(a.labelId).value;
+          a.categoryColor = getStyleRule(a.classSelector).fill;
+        });
+      }
+
+      function getWidestLabel(el) {
+        var current = 0, widest = 0;
+        for(i = 0; i < el.length; i++){
+          current = el[i].getComputedTextLength();
+          if (current > widest){
+            widest = current;
+          }
+        }      
+        return widest;
+      }
+
+      function clicked(d){
+        var nextClass = d3.select(this).attr('class') == SelectedClass ? 'category0Class' : SelectedClass;
+        d3.select(this).attr('class', nextClass);
+      }
+      function changeColor(category, color){
+        var rule = getStyleRule(category);
+        rule.fill = color;
+      }
+
+      function getStyleRule(name) {
+          for(var i=0; i<document.styleSheets.length; i++) {
+            var ix, sheet = document.styleSheets[i];
+            if(sheet.cssRules){
+              for (ix=0; ix<sheet.cssRules.length; ix++) {
+                  if (sheet.cssRules[ix].selectorText === name)
+                      return sheet.cssRules[ix].style;
+              }
+            }
+          }
+
+        return null;
+      }
+
+      function titleChange(){
+        title.innerHTML = titleTextInput.value;
+      }
+
+      function changeCategory(categoryId){
+        var categories = document.querySelectorAll('button[id^="categoryButton"]');
+
+        [].forEach.call(categories, function(a){
+            a.className = ''; // remove selected attribute from all buttons
+        });
+
+        document.getElementById("categoryButton" + categoryId).className = 'selected';
+        SelectedClass = "category" + categoryId + "Class";
+      }
+
+      function deleteCategory(categoryId){
+
+        var objectToDelete = dataset.filter(function(el) { return el.id === categoryId.id; });
+        var deleteConfirmed = confirm("Are you sure you want to delete the category: \"" + objectToDelete[0].legendText + "\"?");
+
+        if (deleteConfirmed){
+          if (SelectedClass === objectToDelete[0].classId){
+            changeCategory(0);
+          }
+          
+          d3.selectAll(objectToDelete[0].classSelector).attr('class', 'category0Class');//set all states with deleted class back to default
+          $(categoryId).remove(); // remove div
+          dataset = dataset.filter(function(el) { return el.id != categoryId.id; }); //remove object from dataset
+          updateD3Legend();
+        }
+      }
+
+      function createClass(name,rules){
+        var style = document.createElement('style');
+        style.type = 'text/css';
+        document.getElementsByTagName('head')[0].appendChild(style);
+        if(!(style.sheet||{}).insertRule) 
+          (style.styleSheet || style.sheet).addRule(name, rules);
+        else
+          style.sheet.insertRule(name+"{"+rules+"}",0);
+      }
+
+      function applyClass(name,element,doRemove){
+        if(typeof element.valueOf() == "string"){
+          element = document.getElementById(element);
+        }
+        if(!element) return;
+        if(doRemove){
+          element.className = element.className.replace(new RegExp("\\b"+name+"\\b","g"),"");
+        }else{
+          element.className = element.className + " "+name;
+        }
+      }
+
+
+      function getNextColor(){
+          var row = Math.floor(CategoryCount/8);
+          var column = CategoryCount % 8;
+          return Palette[row][column];
+      }
+
+      function addCategory(){
+        //set ids
+        //TODO: Turn this into class
+        var newCategoryId = 'category' + CategoryCount;
+        var newCategoryText = 'new category'
+        var newCategoryLabelId = 'category'+ CategoryCount + 'Label';
+        var newCategoryClass = 'category' + CategoryCount + "Class";
+        var newCategoryClassSelector = '.category' + CategoryCount + "Class";
+        var newCategorySpectrumId = '#category' + CategoryCount + 'Color';
+        var newCategoryColor = getNextColor();
+
+        
+        //Fill Div
+        var newCategoryDiv = '<div id="' + newCategoryId +'" class="alternative_cls"></div>'
+        var newCategoryMarkup = '<button type="select" id = "categoryButton' + CategoryCount +'"onclick="changeCategory(' + CategoryCount + ')"><span class="buttontext">→</span></button><input id="category' + CategoryCount + 'Color" /><input class="categoryText" type="text" onkeyup="updateD3Legend()" id="'+ newCategoryLabelId + '" value = "'+ newCategoryText +'">'
+        
+        if(CategoryCount > 0)
+        {
+          //Add Div above the top of the list
+          $('#categories').prepend(newCategoryDiv);
+          //Add delete button 
+          newCategoryMarkup = newCategoryMarkup + '<button type="delete" onclick="deleteCategory(' + newCategoryId + ')">X</button>';
+          
+        }
+        else
+        {
+          //add div
+          $('#categories').append(newCategoryDiv);
+        }
+
+        $('#' + newCategoryId).append(newCategoryMarkup);
+        
+        createClass(newCategoryClassSelector,"fill: " + newCategoryColor + ";");
+
+        //apply color picker to new class
+        $(newCategorySpectrumId).spectrum({
+            preferredFormat: "hex",
+            color: newCategoryColor,
+            flat: false,
+            showInput: true,
+            clickoutFiresChange: true,
+            change: function(color) {
+              changeColor(newCategoryClassSelector, color.toHexString()); // #ff0000
+              updateD3Legend();
+            },
+            showPalette: true,
+            palette: Palette,
+          });
+
+        //Add Category to Dataset
+        var newCategory = {id: newCategoryId, legendText: newCategoryText, labelId: newCategoryLabelId, classId: newCategoryClass, classSelector: newCategoryClassSelector, categoryColor: newCategoryColor};
+        dataset.unshift(newCategory);
+        changeCategory(CategoryCount);
+
+        CategoryCount++;
+        updateD3Legend();
+        if(CategoryCount == 2){
+          $("#legend").tooltip('show');
+        }
+      }
+      
+    </script>
+  </body>
+</html>

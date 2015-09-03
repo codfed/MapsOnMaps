@@ -1,0 +1,22 @@
+.jumbotron {
+	color: #ffffff;
+	-webkit-text-stroke: .1em #000000;
+	background-image: url('../images/patagonia.jpg');
+	background-size: cover;
+}
+
+.navbar {
+    border-radius: 0px;
+}
+
+.navbar-inverse {
+    background-color: #3f3f3f;
+}
+
+.navbar-inverse .navbar-nav>li>a {
+    color: #e8e8e8;
+}
+
+.navbar-inverse .navbar-brand {
+    color: #e8e8e8;
+}
