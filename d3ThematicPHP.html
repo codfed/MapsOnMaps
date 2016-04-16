@@ -43,7 +43,6 @@
         </div>
     </div>
 
-
     <script>
       window.onload = function() {
         //initial legend position
@@ -75,7 +74,7 @@
       ];
       
       var now = d3.time.hour.utc(new Date);
-      var dataset = []; 
+      var categoryData = []; 
 
       var w = 700;      
 
@@ -125,7 +124,7 @@
             .attr("class", "category0Class")
             .style("stroke-width", "1")
             .style("stroke", "white")
-            .on('click', stateClicked);
+            .on('click', clicked);
 
         // add legend   
         var legend = legendSvg.append("g")
@@ -140,12 +139,17 @@
       });
 
       function updateD3Legend(){
-         updateDataset();
+         //update category colors and labels
+          categoryData.forEach(function(a){
+            a.legendText = document.getElementById(a.labelId).value;
+            a.color = getStyleRule(a.classSelector).fill;
+          });
+
          var legend = d3.select("#d3Legend");
 
          legend.selectAll('rect').remove();
           var rect = legend.selectAll('rect');
-            rect.data(dataset)
+            rect.data(categoryData)
             .enter()
             .append("rect")
             .attr("x", 5)
@@ -153,14 +157,14 @@
             .attr("width", 10)
             .attr("height", 10)
             .style("fill", function(d) { 
-              var color = d.categoryColor;
+              var color = d.color;
               return color;
             });
 
           legend.selectAll('text').remove();
           var text = legend.selectAll('text')
           text
-            .data(dataset)
+            .data(categoryData)
             .enter()
             .append("text")
             .attr("x", 20)
@@ -174,7 +178,7 @@
           var widestLabel = Math.round(getWidestLabel(updatedText[0]));
           var legendWidth =  29 + widestLabel;
 
-          var legendHeight = dataset.length * 20 + 4;
+          var legendHeight = categoryData.length * 20 + 4;
 
           $("#legend").css('width', legendWidth);
           $("#legend").css('height', legendHeight);
@@ -183,13 +187,6 @@
             .attr("width", legendWidth)
             .attr("height", legendHeight);
           
-      }
-
-      function updateDataset(){
-        dataset.forEach(function(a){
-          a.legendText = document.getElementById(a.labelId).value;
-          a.categoryColor = getStyleRule(a.classSelector).fill;
-        });
       }
 
       function getWidestLabel(el) {
@@ -203,7 +200,7 @@
         return widest;
       }
 
-      function stateClicked(d){
+      function clicked(d){
         var nextClass = d3.select(this).attr('class') == SelectedClass ? 'category0Class' : SelectedClass;
         d3.select(this).attr('class', nextClass);
       }
@@ -243,7 +240,7 @@
 
       function deleteCategory(categoryId){
 
-        var objectToDelete = dataset.filter(function(el) { return el.id === categoryId.id; });
+        var objectToDelete = categoryData.filter(function(el) { return el.id === categoryId.id; });
         var deleteConfirmed = confirm("Are you sure you want to delete the category: \"" + objectToDelete[0].legendText + "\"?");
 
         if (deleteConfirmed){
@@ -253,7 +250,7 @@
           
           d3.selectAll(objectToDelete[0].classSelector).attr('class', 'category0Class');//set all states with deleted class back to default
           $(categoryId).remove(); // remove div
-          dataset = dataset.filter(function(el) { return el.id != categoryId.id; }); //remove object from dataset
+          categoryData = categoryData.filter(function(el) { return el.id != categoryId.id; }); //remove object from categoryData
           updateD3Legend();
         }
       }
@@ -287,67 +284,67 @@
           return Palette[row][column];
       }
 
-      function addCategory(){
-        //set ids
-        //TODO: Turn this into class
-        var newCategoryId = 'category' + CategoryCount;
-        var newCategoryText = 'new category'
-        var newCategoryLabelId = 'category'+ CategoryCount + 'Label';
-        var newCategoryClass = 'category' + CategoryCount + "Class";
-        var newCategoryClassSelector = '.category' + CategoryCount + "Class";
-        var newCategorySpectrumId = '#category' + CategoryCount + 'Color';
-        var newCategoryColor = getNextColor();
+      function Category(CategoryCount) {
+          this.id = 'category' + CategoryCount;
+          this.legendText = 'new category'
+          this.labelId = 'category'+ CategoryCount + 'Label';
+          this.classId = 'category' + CategoryCount + "Class";
+          this.classSelector = '.category' + CategoryCount + "Class";
+          this.spectrumId = '#category' + CategoryCount + 'Color';
+          this.number = CategoryCount;
+          this.color = getNextColor();
+      }
 
+      function addCategory(){        
+        var category = new Category(CategoryCount);
+                
+        createClass(category.classSelector,"fill: " + category.color + ";");
+        //Add Category to categoryData
+        categoryData.unshift(category);
         
-        //Fill Div
-        var newCategoryDiv = '<div id="' + newCategoryId +'" class="alternative_cls"></div>'
-        var newCategoryMarkup = '<button type="select" id = "categoryButton' + CategoryCount +'"onclick="changeCategory(' + CategoryCount + ')"><span class="buttontext">→</span></button><input id="category' + CategoryCount + 'Color" /><input class="categoryText" type="text" onkeyup="updateD3Legend()" id="'+ newCategoryLabelId + '" value = "'+ newCategoryText +'">'
-        
-        if(CategoryCount > 0)
-        {
-          //Add Div above the top of the list
-          $('#categories').prepend(newCategoryDiv);
-          //Add delete button 
-          newCategoryMarkup = newCategoryMarkup + '<button type="delete" onclick="deleteCategory(' + newCategoryId + ')">X</button>';
-          
-        }
-        else
-        {
-          //add div
-          $('#categories').append(newCategoryDiv);
-        }
+        var jsonString = JSON.stringify(categoryData);
 
-        $('#' + newCategoryId).append(newCategoryMarkup);
-        
-        createClass(newCategoryClassSelector,"fill: " + newCategoryColor + ";");
+          var data = {
+            "action": "updateCategoryPanel",
+            "categoryJson": jsonString
+          };
+          data = $(this).serialize() + "&" + $.param(data);
+          $.ajax({
+            type: "POST",
+            dataType: "json",
+            url: "updateCategoryPanel.php", //Relative or absolute path to response.php file
+            data: data,
+            success: function(data) {
+              $("#categories").html(
+                JSON.parse(data["json"])
+              );
+            }
+          });
 
         //apply color picker to new class
-        $(newCategorySpectrumId).spectrum({
+        $(category.spectrumId).spectrum({
             preferredFormat: "hex",
-            color: newCategoryColor,
+            color: category.color,
             flat: false,
             showInput: true,
             clickoutFiresChange: true,
             change: function(color) {
-              changeColor(newCategoryClassSelector, color.toHexString()); // #ff0000
+              changeColor(category.classSelector, color.toHexString()); // #ff0000
               updateD3Legend();
             },
             showPalette: true,
             palette: Palette,
           });
 
-        //Add Category to Dataset
-        var newCategory = {id: newCategoryId, legendText: newCategoryText, labelId: newCategoryLabelId, classId: newCategoryClass, classSelector: newCategoryClassSelector, categoryColor: newCategoryColor};
-        dataset.unshift(newCategory);
-        changeCategory(CategoryCount);
+        //TODO: REWRITE TO BE COMPATIBLE WITH PHP
+        //changeCategory(CategoryCount);
 
         CategoryCount++;
         updateD3Legend();
         if(CategoryCount == 2){
           $("#legend").tooltip('show');
         }
-      }
-      
+      }      
     </script>
   </body>
 </html>

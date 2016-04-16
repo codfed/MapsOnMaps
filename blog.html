@@ -1,0 +1,130 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Maps On Maps</title>
+    
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css" rel="stylesheet" integrity="sha256-MfvZlkHCEqatNoGiOXveE8FIwMzZg4W85qfrfIFBfYc= sha512-dTfge/zgoMYpP7QbHy4gWMEGsbsdZeCXz7irItjcC3sPUFtf0kuFbDz/ixG7ArTxmDjLXDmezHubeNikyKGVyQ==" crossorigin="anonymous">
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js" integrity="sha256-Sk3nkD6mLTMOF0EOpNtsIry+s1CsaqQC1rVLTAy+0yc= sha512-K1qjQ+NcF2TYO/eI3M6v8EiNYZfA95pQumfvcVrTHtwQVDG+aHRqLi/ETn2uB+1JqwYqVG3LIvdm9lj6imS/pQ==" crossorigin="anonymous"></script>
+    <link rel='stylesheet' href='css/master.css' />   
+
+  </head>
+  <body>
+  <div id="navbar"></div>
+  <div class="container">
+      <div class="blog-header">
+        <h1 class="blog-title">Blogs on Maps</h1>
+        <p class="lead blog-description">Blogs on Blogs on Maps on Maps.</p>
+
+        <div class="row">
+
+        <div class="col-sm-8 blog-main">
+
+          <div class="blog-post">
+            <h2 class="blog-post-title">The Beginning of d3Thematic</h2>
+            <p class="blog-post-meta">February 17, 2016</p>
+
+            <p>Late one night my friend messaged me on Skype asking how she could make a map of the United States with two categories. If I were in need of this I would have fired up <a href="http://www.qgis.org/">QGIS</a>. Within 20 minutes I would have imported a shapefile and categorized the states. 45 minutes after that I would have pasted screenshots into Photoshop, meticulously placed Alaska and Hawaii where I felt they should go and spent way too much time fussing with the legend. I would finally decide to leave well enough alone and move on with my life.</p>
+            
+            <p>That was too much work for such a simple task.</p>
+            
+            <p>I searched a bit for an online solution. There were numerous available but they all had one thing in common: <strong>a fatal flaw</strong>. The fatal flaw for one was it used the Mercator projection, another used the Lambert Conformal Conic but the state lines were far too detailed, another actually showed vomit on the screen and called it a "legend".</p>
+
+            <p>She wound up using the Mercator one. Her grad school didn't kick her out because of it. She moved on with her life.</p>
+            <hr>
+            <h3>The fire had been lit in my belly</h3>
+
+            <p>Over the next few years, when I would begin to feel underwhelmed with my day job I would come home and work on this solution. The first route I went down was from square one. I wanted to be able to render the map on an HTML5 canvas. I wrote a c# application to take a shapefile and condense the points into a polygon which could be drawn on the canvas without too much detail. Here is what central California looked like:</p>
+            <figure>
+              <img src="images/blog/malifornia.png" align="center">
+              <figcaption>Note the incredibly skewed Bay Area on the right side.</figcaption>
+            </figure>
+
+            <p>My attention was shifted elsewhere, I moved, started a new job and heard about d3.js. Since I now know about d3, I never bothered revisiting the previous project. Here is what brought MapsOnMaps to where it is today.</p>
+
+            <h3>Step 1: Displaying the map</h3>
+
+            <p>With a little bit of work I was able to have the <a href="https://www.census.gov/geo/maps-data/data/cbf/cbf_state.html"> census.gov state boundary shapefile</a>converted to geojson and displaying on the screen. But this required the extent to be huge in order to display Alaska and Hawaii.</p>
+
+            <p>Initially I thought I was going to need to do some serious shapefile hacking in QGIS to get Alaska and Hawaii to display below the southwestern states. Life became much easier after I read <a href="https://medium.com/@amyru1/changing-d3js-albersusa-state-size-de4a6687334d#.36q4x7ax0">this article on Medium by Amy Rudolph</a>.</p>
+
+            </p>The article guided me to a revelation... in D3 you can manipulate geographic objects. Each state is its own geographic object. You can manipulate these as desired. You can change the scale, rotation and position of them until they are displayed right where you want them! Pretty slick.</p>
+
+            <h3>Step 2: Click functionality</h3>
+
+            <p>Bind stateClicked function to each state object:</p>
+            <pre><code>svg.selectAll(".state-path")
+  .append("path")
+  .attr("d", path)
+  .attr("class", "category0Class")
+  .style("stroke-width", "1")
+  .style("stroke", "white")
+  <mark>.on('click', stateClicked);</mark></code></pre>
+
+            <pre><code>function stateClicked(d){
+  var nextClass = d3.select(this).attr('class') == SelectedClass ? 'category0Class' : SelectedClass;
+  d3.select(this).attr('class', nextClass);
+}</code></pre>
+            <p>The stateClicked function will toggle between the selected class and the default class. This comparison is more hard coded than I'd like it to be. Can't wait for the refactor!</p>
+
+            <h3>Step 3: Category Handling</h3>
+            <img src = "images/blog/CategoryControl.png">
+            <p>The requirements I came up with specifically for each category are:</p>
+            <ul>
+              <li>Add</li>
+              <li>Delete</li>
+              <li>Change color</li>
+              <li>Rename</li>
+            </ul>
+            <p>All of these are accomplished with one exception: you cannot delete the default category because of limitations set forth in the stateClicked function above. We always need to have a 'category0Class'. It works, but that will sure feel good to refactor.
+
+            The color selector utilizes <a href="https://bgrins.github.io/spectrum/">github user bgrins' spectrum color selector</a>. The only modification here was to the css override to make the color fit in a bit better than the default.</p>
+            <img src="images/blog/SpectrumDefault.png">
+
+            <p>The majority of the work on this section was tweaking CSS on the buttons to signify which color was selected, that you could select another category and that you can delete any category sans the default.</p>
+
+            <h3>Step 4: Map Display</h3>
+
+            <h4>Title</h4>            
+            <p>As you type your title in, it displays itself centered above the map. No title? No problem. If you don't want a title on your map, the blank space does not throw the map balance off!</p>
+            <img src="images/blog/TitleDisplay.png">
+
+            <h4>Legend</h4>
+            <p>This was my favorite part to work on. As a category is added or changed it will draw a rectangle. The height determined by the amount of the categories. The width is the interesting part. It is calculated using the svg getComputedTextLength function. I went down a few hopeless paths before finding that little gem.
+
+            The next exciting thing about this was making it a draggable element. This was accomplished using jQueryUI's draggable functionality. What it does is alleviate many frustrating hours map makers have spent putting the final touches on their maps by exporting to Photoshop to put the finishing touches on the legend.</p>
+            <img src="images/blog/d3ThematicLegend.png">
+          </div><!-- /.blog-post -->
+      </div>
+      <div class="col-sm-3 col-sm-offset-1 blog-sidebar">
+          <div class="sidebar-module sidebar-module-inset">
+            <h4>About</h4>
+            <p>MapsOnMaps.co is Cody Feda's map application sandbox.</p>
+          </div>
+<!--           <div class="sidebar-module">
+            <h4>Previous Posts</h4>
+            <ol class="list-unstyled">
+              <li><a href="https://github.com/codfed/MapsOnMaps">GitHub</a></li>
+            </ol>
+          </div> -->
+          <div class="sidebar-module">
+            <h4>Elsewhere</h4>
+            <ol class="list-unstyled">
+              <li><a href="https://github.com/codfed/MapsOnMaps">GitHub</a></li>
+            </ol>
+          </div>
+        </div><!-- /.blog-sidebar -->
+        <canvas id="canvas" width="1000" height="100"></canvas>
+  </div>
+    <script>
+     $(function(){
+        $("#navbar").load("navbar.html"); 
+        $("#blog").addClass("active");
+      });
+
+    </script>
+  </body>
+</html>
