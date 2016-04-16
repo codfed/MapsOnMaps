@@ -35,11 +35,11 @@ function update_category_panel(){
   $categories = json_decode($_POST[categoryJson], true);
   //echo json_encode($categories);
    foreach ($categories as $category){ 
-	    $returnHTML .= "<div id=\"div".$category[id]."fake\" class=\"alternative_cls\">";
+	    $returnHTML .= "<div id=\"div".$category[id]."\" class=\"alternative_cls\">";
 
 
 	    $returnHTML .=  "<button type=\"select\" id = \"categoryButton" . $category[number] . " \" onclick=\"changeCategory(" . $category[number] . ")\"><span class=\"buttontext\">→</span></button>";
-	    $returnHTML .=  "<input id=\"category" . $category[number] . "ColorFake\" class=\"categoryText\" type=\"text\" onkeyup=\"updateD3Legend()\" id=\"" . $category[labelId] . "\" value = \"" . $category[legendText] ."\">";
+	    $returnHTML .=  "<input id=\"category" . $category[number] . "Color\" class=\"categoryText\" type=\"text\" onkeyup=\"updateD3Legend()\" id=\"" . $category[labelId] . "\" value = \"" . $category[legendText] ."\">";
 	    if($category[number] > 0){
 	      $returnHTML .=  "<button type=\"delete\" onclick=\"deleteCategory(" . $category[id] . ")\">X</button>";
 	    }

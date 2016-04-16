@@ -125,7 +125,7 @@
             .attr("class", "category0Class")
             .style("stroke-width", "1")
             .style("stroke", "white")
-            .on('click', clicked);
+            .on('click', stateClicked);
 
         // add legend   
         var legend = legendSvg.append("g")
@@ -203,7 +203,7 @@
         return widest;
       }
 
-      function clicked(d){
+      function stateClicked(d){
         var nextClass = d3.select(this).attr('class') == SelectedClass ? 'category0Class' : SelectedClass;
         d3.select(this).attr('class', nextClass);
       }
